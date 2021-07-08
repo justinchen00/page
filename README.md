@@ -1,6 +1,6 @@
 # TVUNetworks MMA API
 
-![source](https://justinchen00.github.io/page)
+![source](https://justinchen00.github.io/page/)
 
 ## Usage
 
