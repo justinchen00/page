@@ -17,10 +17,6 @@ Change logs:
 
 ------
 
-[TOC]
-
-------
-
 Some Terms:
 
 * frontend --- the web page of the client of paywalld, such as the webpage of TVUSearch
@@ -65,7 +61,7 @@ All operations could be finished in the console of CB.
      e.g. 
      For `TVU Search` ,  the customer who subscribes the plan will have 50 seconds credits for downloading.
 
-     ```json
+     ```JavaScript
      {
      	"mm_download": 50,
      	"mm_live": 0
@@ -84,7 +80,7 @@ Notes:
 
 Retrieve a customer's information of payment method and those exceptional invoices. All exceptional invoices and its content can be achieved by this API. 
 
-```json
+```JavaScript
 query{
   customer(customerId:"justinchen@tvunetworks.com",
            product: "TVUSearch"
@@ -119,7 +115,7 @@ paywalld's client can use this API to
 2. the ceiling of feature, which is presented in attachedItems.quantity.
 3. get its remaining credit
 
-```json
+```JavaScript
 query{
   plan(
         customerId: "justinchen@tvunetworks.com",
@@ -161,7 +157,7 @@ For fetching the value of `billingType` of addon, please use the filter, such as
 
 paywalld's client can use this API to get the existing plan.
 
-```json
+```JavaScript
 query{
   plans(
         product: "TVUSearch"
@@ -180,7 +176,7 @@ return the information of customer's subscription.  paywalld's client can use th
 
  `paywalld` ensures that one `plan` just has one `subscription` for one user. 
 
-```json
+```JavaScript
 query {
     subscription (
         customerId: "justinchen@tvunetworks.com",
@@ -203,7 +199,7 @@ The explanation of `status`: https://apidocs.chargebee.com/docs/api/subscription
 
 Retrieve all information of `addon`.  paywalld's client can use this API to get its quoted price.
 
-```json
+```JavaScript
 query{
   chargeItem (
         customerId: "justinchen@tvunetworks.com",	//which is useless for paywalld now
@@ -227,7 +223,7 @@ ref: https://apidocs.chargebee.com/docs/api/addons?prod_cat_ver=1#retrieve_an_ad
 
 The end-user can use the self-service portal to maintain their billing information / invoice / subscription. 
 
-```json
+```JavaScript
 query{
   customerPortal (
         customerId: "justinchen@tvunetworks.com",
@@ -247,7 +243,7 @@ ref: https://apidocs.chargebee.com/docs/api/portal_sessions?prod_cat_ver=1#creat
 
 client can use it to check the final status of checkout.
 
-```json
+```JavaScript
 query{
   customerPortalStatus (
         hostedPageID: "b9Z5Sce6AxFBNBMLu4qcuJHFthSF4VI0I"
@@ -276,7 +272,7 @@ https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status
 
 ### mutation createCustomer
 
-```json
+```JavaScript
 mutation{
   createCustomer(
     customerId:"justinchen@tvunetworks.com",	//using TVU's account(email address) as Chargebee(CB)'s ID
@@ -314,7 +310,7 @@ ref: https://apidocs.chargebee.com/docs/api/hosted_pages#manage_payment_sources
 
 for PPU. return hosted page. no need add-on.
 
-```json
+```JavaScript
 mutation {    
     checkoutOneTimePageAmount (
         customerId:"justinchen@tvunetworks.com",
@@ -343,7 +339,7 @@ Two ways:
 
 for PPU. return hosted page. The add-on should be created in advance, and its `Charge Type` must be `One-time`.  And share it with the client of paywalld, such as MediaMind. 
 
-  ```json
+  ```JavaScript
 mutation {    
     checkoutOneTimePageQuantity (
     customerId:"justinchen@tvunetworks.com",
@@ -364,7 +360,7 @@ mutation {
 `hosted page`:
 e.g.
 
-```json
+```JavaScript
 {
     "hosted_page": {
         "id": "b3coJuK1RJkcoRCP69d9gdqCKMcOcwxy",
@@ -388,7 +384,7 @@ ref: https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkout
 for PPU. API returns the status of invoice. It applies to the case that no need the confirmation from customer, such as `mm_takelive` of `tvusearch`. no add-on. Need to check customer's billing information before using it in business logic. 
 ref: https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases
 
-```json
+```JavaScript
 mutation {    
     checkoutOneTimeInvoiceAmount (
         customerId:"justinchen@tvunetworks.com",
@@ -410,7 +406,7 @@ mutation {
 `add-on` can be used here. It should be created in advance, and its `Charge Type` must be `One-time`. The client of paywalld, such as MediaMind.
 ref: https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases
 
-  ```json
+  ```JavaScript
 mutation {    
     checkoutOneTimeInvoiceQuantity (
     customerId:"justinchen@tvunetworks.com",
@@ -434,7 +430,7 @@ mutation {
 
  `paywalld` ensures that one `plan` just has one `subscription` for one user.  Return the same structure as `query subscription` did.
 
-```json
+```JavaScript
 query {
     cancelSubscription (
         customerId: "justinchen@tvunetworks.com",
@@ -455,7 +451,7 @@ ref:  https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#cancel
 
  If a prepay invoice fails to charge, it should be canceled immediately. 
 
-```json
+```JavaScript
 query {
     cancelInvoice (
         customerId: "justinchen@tvunetworks.com",
@@ -474,7 +470,7 @@ ref:
 
 return hosted page.  Return `success` when the customer has an existing plan already. 
 
-```json
+```JavaScript
 mutation {
     checkoutNewSubscription (
         customerId: "justinchen@tvunetworks.com",
@@ -500,7 +496,7 @@ ref: https://tvunetworks-test.chargebee.com/apikeys_and_webhooks/webhooks
 
 If no suitable payment method, this API returns `failure` .  If the customer has an existing and active plan, API returns `success`. 
 
-```json
+```JavaScript
 mutation {
     checkoutNewSubscriptionInvoice (
         customerId: "justinchen@tvunetworks.com",
@@ -534,7 +530,7 @@ checkout an existing subscription with billing_type(add_on). API returns the sta
 
 paywalld's client can use this API to charge customer's add-on that attaches to an active subscription.
 
-```json
+```JavaScript
 mutation {
     checkoutExistingSubscriptionInvoice (
         customerId: "justinchen@tvunetworks.com",
@@ -661,7 +657,7 @@ same as case 6. The details is hidden by paywalld.
 
 1. message body of subscription_renewed
 
-```json
+```JavaScript
  {
     "id": "ev_Azz5oUSRtOs3v1CkB",
     "occurred_at": 1615960809,
