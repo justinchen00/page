@@ -1,82 +1,81 @@
-# paywalld
-
-- JustinChen@TVU
-
-
-
-## Change logs:
-
-1. **20210424** the first version that have been used in product of TVUSearch
-2. **20210525** add a new API `mutation checkoutNewSubscriptionInvoice` for Partyline
-3. **20210526** enhance the feature of `query plan` for Partyline
-   added a new API `mutation cancelSubscription`
-4. **20210527** added a new API `query customerPortalStatus`
-5. **20210531** `query subscription` and `query plan` support checking `remaining credit`
-6. **20210607** added a new API `mutation cancelInvoice`
-   enhance the feature of `query customer` to support getting the unpaid invoices.
+JustinChen@TVU
 
 ---
 
-## Some terms in the document:
+# Change logs:
+
+1. **20210424** the first version that have been deployed for TVUSearch
+2. **20210525** add a new API `mutation checkoutNewSubscriptionInvoice` for Partyline
+3. **20210526** enhance the feature of `query plan` for Partyline
+added a new API `mutation cancelSubscription`
+4. **20210527** added a new API `query customerPortalStatus`
+5. **20210531** `query subscription` and `query plan` support checking `remaining credit`
+6. **20210607** added a new API `mutation cancelInvoice`
+enhance the feature of `query customer` to support getting the unpaid invoices.
+
+# Some terms in the document:
 
 - frontend --- the web page of the client of paywalld, such as the webpage of TVUSearch
 - backend -- the web service of the client of paywalld, such as the web service backend of TVUSearch.
-- customer -- who uses TVU service. such as "NY Times".
-- client/product/service --- refer to TVU service, such as Mediamind/Producer.
-- operation/billing type --- a kind of operation that is not free or should be logged, such as downloading marked files in TVUSearch.
-- chargeItem — applicable addons. It is `addon` in Chargebee.
+- customer -- who uses TVU service, such as "NY Times".
+- service/client/product --- refer to TVU service, such as Mediamind/Producer/Partyline.
+- billing type --- a kind of operation that is not free or should be logged. `mm_download` represents the operation of  the downloading in TVUSearch.
+- charge Item — applicable `addons` .
 - SUB — subscription
 - PPU — pay per usage
 - PK — credit
 
-### **PM&Solution need to know:**
+# PM/Solution need to know:
 
-Before a new service begin to use paywall, PM has to figure out the `plan` and `chargeItem` what they need.
+Before a new service begins to use paywall, PM had to figure out the `[plan](https://www.notion.so/paywalld-c4b7e62992fc499b81066240d45cb685)` and charge Items what they need. 
 
-All operations could be finished in the console of ChargeBee.
+All pre-configuration listed below can be added in the console of Chargebee.  You can refer to `[plan](https://www.chargebee.com/docs/1.0/plans.html)`/`[custom field](https://www.chargebee.com/docs/2.0/custom_fields.html#creating-custom-fields)` for details.
 
-1. If a new service begins to use paywall, PM needs to add a new option to the custom field of `TVU Service Type`. The current values include `TVUSearch`/`Producer`/`Partyline`.
+For a new service, we should do:
 
-2. If there is a new billing type(addon) for this service, it should be added to the list of the custom field of `Billing Type` of `addon`. For `TVUSearch`, its value could be `mm_download`/`mm_live`.
+1. append a new option to the custom field `TVU Service Type` of `plan` and `subscription`, which includes `TVUSearch`/`Producer`/`Partyline` now.  
+2. append new options to the custom field `Billing Type` of `Addons`for each charge Item.  
+For `TVUSearch`, it includes `mm_download`/`mm_live`.  
+For `Partyline`, it includes `pl_partitant`/`pl_output`/`pl_hours`. 
+3. create a non-recurring `addon` for each charge Item and choose `Billing Type`. `addon` is still required even if it's free. Its price could be $0. Normally, `Pricing Model` is `Per Unit`.
+If just PPU billing model, that's it.
+e.g.
+For the charge item of `download`  in `TVUSearch` , there are multiple `addon` for different price: 
 
-3. create non-recurring `addon` and select a `Billing Type` for it . `addon` is still required even if it's free. Its price could be $0.
-   e.g If you created an addon for `TVUSearch`'s `download` , this billing type of the addon is `mm_download`.
+![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/5d8c89c9-d997-46e7-b353-d0cc868aba58/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/5d8c89c9-d997-46e7-b353-d0cc868aba58/Untitled.png)
 
-4. [SUB] create `plan` ; set `Restricted addons`; attach those related `addon` to it in the way of `On Demand`.
+![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0d6a6327-af97-467f-8071-b0ad6f8ce296/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0d6a6327-af97-467f-8071-b0ad6f8ce296/Untitled.png)
 
-5. [PK] if needing PK, please fill in the custom field `billing credit` of `plan`. Its format follows
+1. If you have subscription, need to create `plan` ; set `Restricted addons`; attach those related `addon` to it in the way of `On Demand`.
+2. If needing PK, please assign a string to the custom field `billing credit` of `plan`, which follows
+    - JSON representation
+    - object key is the same value of `Billing Type`
+    e.g. 
+    For `TVU Search` ,  the customer who subscribes the plan will have 50 seconds credits for downloading.
 
-   - in JSON
+        ```json
+        {
+            "mm_download": 50,
+            "mm_live": 0
+        }
+        ```
 
-   - `string` is the same value of `Billing Type`
+3. share the new added `TVU Service Type` and `Billing Type` with your engineer
+4. done
 
-     e.g. 
-     For `TVU Search` ,  the customer who subscribes the plan will have 50 seconds credits for downloading.
-
-     ```
-     {
-         "mm_download": 50,
-         "mm_live": 0
-     }
-     ```
-
-6. share the new added `TVU Service Type` and `Billing Type` with its engineer
-
-7. done
-
-## Notes:
+# Notes:
 
 - A customer is just allowed to subscribe one plan for one TVU Service.
 - router: `api/paywall/v2/`
-- If customer doesn't exist when client invokes paywalld's API, paywalld will create a new one.
-- [engineer] The API of Chargebee have two big versions. V1 and V2.
-  For V2, there are two small versions, prod_cat_ver=1 and prod_cat_ver=2. we are using is `prod_cat_ver=1`, which was the stable version when we start developing paywalld. [https://apidocs.chargebee.com/docs/api/](https://apidocs.chargebee.com/docs/api/)
+- When paywalld's API is invoked, paywalld will create a new customer account if the account does not exist.
+
+# API
 
 ### **query customer**
 
 Retrieve a customer's information of payment method and those exceptional invoices. All exceptional invoices and its content can be achieved by this API.
 
-```
+```jsx
 query{
   customer(customerId:"justinchen@tvunetworks.com",
            product: "TVUSearch"
@@ -325,7 +324,7 @@ Two ways:
 
 - The frontend webpage can handle it. The prerequisite is paywalld needs to enable `iframe_messaging` while get the hosted page.
 - The backend service uses `hosted_page.id` to query the payment status. If paid, the backend can save the state for future reference.
-  ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page)
+ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page)
 
 ### **mutation checkoutOneTimePageQuantity**
 
@@ -545,39 +544,31 @@ ref: [https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create_invo
 Internal workflow:
 
 1. check whether the customer has an active subscription. if has no, return error.
-
 2. check whether the customer has no unbilled charges. If has, return error.
-
 3. get `plan` 's `applicable_addons` list.
-   ref: [https://apidocs.chargebee.com/docs/api/plans#retrieve_a_plan](https://apidocs.chargebee.com/docs/api/plans#retrieve_a_plan)
-
+ref: [https://apidocs.chargebee.com/docs/api/plans#retrieve_a_plan](https://apidocs.chargebee.com/docs/api/plans#retrieve_a_plan)
 4. get the addon ID whose `cf_billing_type` has the same value as "billing_type" of the API input.
-
 5. If the custom field `billing credit` of `subscription` is empty, no PK is involved.
-   directly invoices `addon` with the `quantity` in API to the customer.
-   Return the information of `invoice`. Most important value is "invoice"."amount_paid" and
+directly invoices `addon` with the `quantity` in API to the customer.
+Return the information of `invoice`. Most important value is "invoice"."amount_paid" and
 
     "invoice"."[status](https://apidocs.chargebee.com/docs/api/invoices#invoice_status)"
 
 6. [PK] If `billing credit` has value, parse it and get the remained `credit/quantity` of the addon of the subscription.
-
 7. [PK] if (remained credit >= charging `quantity` in API)
-   invoice addon with the `quantity` in API, but its price should be $0(addon_unit_price=$0).
-
+invoice addon with the `quantity` in API, but its price should be $0(addon_unit_price=$0).
 8. [PK] if (remained credit < charging `quantity` in API)
-   invoice addon with those remained credit in $0.
-   And invoice addon with the non-free quantity(charging quantity - remained credit) in the default price.
-
+invoice addon with those remained credit in $0.
+And invoice addon with the non-free quantity(charging quantity - remained credit) in the default price.
 9. [PK] If invoice.status == paid, update the JSON of the custom field `billing credit` of `subscription`.
-   ref: [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription](https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription)
-
+ref: [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription](https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription)
 10. [PK] Return the information of `invoice`.
 
-> mutation checkoutExistingSubscriptionPage
+### mutation checkoutExistingSubscriptionPage
 
-~~typically in the trial state~~
+typically in the trial state
 
-~~ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkout_existing_subscription](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkout_existing_subscription)~~
+ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkout_existing_subscription](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkout_existing_subscription)
 
 ### **mutation createPlan**
 
@@ -585,55 +576,59 @@ Internal workflow:
 
 # **Billing models and their essential APIs**
 
-## **PPU**
+## 1. **PPU**
 
-### **case1: the business service knows the final price before carry out the action that is not free**
+### **case1: the business service knows the final price before carry out the action**
 
-mutation checkoutOneTimePageAmount
+mutation `checkoutOneTimePageAmount`
 
-### **case2: the business service knows the final price after carried out the action that is not free**
+e.g.  Before downloading a file, we know its total price. 
 
-query customer: use this API to check whether customer correctly filed his payment way.
+### **case2: the business service knows the final price after carried out the action**
 
-mutation checkoutOneTimeInvoiceAmount: charge customer when we know the final amount of the bill.
+query `customer`: use this API to check whether customer has correctly filed his payment way.
 
-### **case3: the business service knows the count of charged item before carry out the action that is not free**
+mutation `checkoutOneTimeInvoiceAmount`: charge customer when we know the final amount of the bill.
 
-mutation checkoutOneTimePageQuantity
+e.g. We don't know the final price until the "takelive" stopped.
 
-### **case4: the business service knows the count of charged item after carried out the action that is not free**
+### **case3: the business service knows the count of charged item before carry out the action**
 
-query customer: use this API to check whether customer correctly filed his payment way.
+mutation `checkoutOneTimePageQuantity`
 
-mutation checkoutOneTimeInvoiceQuantity: charge customer when we know the final amount of the bill.
+### **case4: the business service knows the count of charged item after carried out the action**
 
-## **SUB**
+query `customer`: use this API to check whether customer correctly filed his payment way.
+
+mutation `checkoutOneTimeInvoiceQuantity`: charge customer when we know the final amount of the bill.
+
+## 2. **SUB**
 
 ### **case 5: charge customer a fixed amount each charging period**
 
-query subscription: use this API to check whether the customer has an active subscription of the plan.
+query `subscription`: use this API to check whether the customer has an active subscription of the plan.
 
-mutation checkoutNewSubscription
+mutation `checkoutNewSubscription`
 
-mutation checkoutExistingSubscriptionInvoice:  this is optional for this case.
+mutation `checkoutExistingSubscriptionInvoice`:  this is optional for this case.
 
-## **SUB+PPU**
+## 3. **SUB+PPU**
 
 ### **case 6: charge customer a fixed amount each charging period and extra charge customer when he carry out the action that is not free**
 
 query subscription: use this API to check whether the customer has an active subscription of the plan.
 
-mutation checkoutNewSubscription
+mutation `checkoutNewSubscription`
 
-mutation checkoutExistingSubscriptionInvoice
+mutation `checkoutExistingSubscriptionInvoice`
 
-## **SUB+PPU+PK**
+## 4. **SUB+PPU+PK**
 
 ### **case 7: when customer subscribed a plan, he will get amount of free credits for the charge item**
 
 same as case 6. The details is hidden by paywalld.
 
-### **Appendix**
+# **Appendix**
 
 1. message body of subscription_renewed
 
@@ -702,5 +697,8 @@ same as case 6. The details is hidden by paywalld.
     "webhook_status": "not_configured"
 }
 ```
+
+1. [engineer] The API of Chargebee have two big versions. V1 and V2.
+For V2, there are two small versions, prod_cat_ver=1 and prod_cat_ver=2. we are using is `prod_cat_ver=1`, which was the stable version when we start developing paywalld. [https://apidocs.chargebee.com/docs/api/](https://apidocs.chargebee.com/docs/api/)
 
 [pool](https://www.notion.so/pool-963ca27c3ae44e55b5445a318833eac1)
