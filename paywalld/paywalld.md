@@ -1,6 +1,6 @@
 JustinChen@TVU
 
-# Change logs:
+## Change logs:
 
 1. 20210424 the first version that have been deployed for TVUSearch
 2. 20210525 add a new API `mutation checkoutNewSubscriptionInvoice` for Partyline
@@ -11,7 +11,7 @@ added a new API `mutation cancelSubscription`
 6. 20210607 added a new API `mutation cancelInvoice`
 enhance the feature of `query customer` to support getting the unpaid invoices.
 
-# Some terms in the document:
+## Some terms in the document:
 
 - frontend --- the web page of the client of paywalld, such as the webpage of TVUSearch
 - backend -- the web service of the client of paywalld, such as the web service backend of TVUSearch.
@@ -23,7 +23,7 @@ enhance the feature of `query customer` to support getting the unpaid invoices.
 - PPU — pay per usage
 - PK — credit
 
-# PM/Solution need to know:
+## PM/Solution need to know:
 
 Before a new service begins to use paywall, PM had to figure out the `[plan](https://www.notion.so/paywalld-c4b7e62992fc499b81066240d45cb685)` and charge Items what they need. 
 
@@ -61,15 +61,15 @@ For the charge item of `download`  in `TVUSearch` , there are multiple `addon` f
 3. share the new added `TVU Service Type` and `Billing Type` with your engineer
 4. done
 
-# Notes:
+## Notes:
 
 - A customer is just allowed to subscribe one plan for one TVU Service.
 - router: `api/paywall/v2/`
 - When paywalld's API is invoked, paywalld will create a new customer account if the account does not exist.
 
-# API
+## API
 
-## query customer
+### query customer
 
 Retrieve a customer's information of payment method and those exceptional invoices. All exceptional invoices and its content can be achieved by this API.
 
@@ -99,7 +99,7 @@ ref: [https://apidocs.chargebee.com/docs/api/customers#retrieve_a_customer](http
 
 e.g. curl -L -g -X GET '[https://tvunetworks-test.chargebee.com/api/v2/invoices?customer_id](https://tvunetworks-test.chargebee.com/api/v2/invoices?customer_id)[is]=[emmasun4@admin.com](mailto:emmasun4@admin.com)&status[is_not]=not_paid'
 
-## query plan
+### query plan
 
 Retrieve all information of `plan`.  This API will be frequently invoked, so need to pay attention to its performance.
 paywalld's client can use this API to
@@ -144,7 +144,7 @@ query{
 ref: [https://apidocs.chargebee.com/docs/api/plans?prod_cat_ver=1#retrieve_a_plan](https://apidocs.chargebee.com/docs/api/plans?prod_cat_ver=1#retrieve_a_plan)[https://apidocs.chargebee.com/docs/api/addons?prod_cat_ver=1#retrieve_an_addon](https://apidocs.chargebee.com/docs/api/addons?prod_cat_ver=1#retrieve_an_addon)[https://apidocs.chargebee.com/docs/api/addons?prod_cat_ver=1#list_addons](https://apidocs.chargebee.com/docs/api/addons?prod_cat_ver=1#list_addons)
 For fetching the value of `billingType` of addon, please use the filter, such as cf_billing_type[is]=pl_participant&cf_tvu_service_type[is]=Partyline&status[is]=active
 
-## query plans
+### query plans
 
 paywalld's client can use this API to get the existing plan.
 
@@ -161,7 +161,7 @@ query{
 
 ref: [https://apidocs.chargebee.com/docs/api/plans?prod_cat_ver=1&lang=curl#retrieve_a_plan](https://apidocs.chargebee.com/docs/api/plans?prod_cat_ver=1&lang=curl#retrieve_a_plan)
 
-## query subscription
+### query subscription
 
 return the information of customer's subscription.  paywalld's client can use this API to check whether the customer has an active subscription of the plan and its remaining credit.
 
@@ -186,7 +186,7 @@ query {
 ref:  [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#retrieve_a_subscription](https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#retrieve_a_subscription)
 The explanation of `status`: [https://apidocs.chargebee.com/docs/api/subscriptions#subscription_status](https://apidocs.chargebee.com/docs/api/subscriptions#subscription_status)
 
-## query chargeItem
+### query chargeItem
 
 Retrieve all information of `addon`.  paywalld's client can use this API to get its quoted price.
 
@@ -210,7 +210,7 @@ query{
 
 ref: [https://apidocs.chargebee.com/docs/api/addons?prod_cat_ver=1#retrieve_an_addon](https://apidocs.chargebee.com/docs/api/addons?prod_cat_ver=1#retrieve_an_addon)
 
-## query customerPortal
+### query customerPortal
 
 The end-user can use the self-service portal to maintain their billing information / invoice / subscription.
 
@@ -230,7 +230,7 @@ query{
 
 ref: [https://apidocs.chargebee.com/docs/api/portal_sessions?prod_cat_ver=1#create_a_portal_session](https://apidocs.chargebee.com/docs/api/portal_sessions?prod_cat_ver=1#create_a_portal_session)
 
-## query customerPortalStatus
+### query customerPortalStatus
 
 client can use it to check the final status of checkout.
 
@@ -260,7 +260,7 @@ If the payment succeeds, it is marked as paid. If the payment fails, the invoice
 
 ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page)[https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status](https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status)
 
-## mutation createCustomer
+### mutation createCustomer
 
 ```jsx
 mutation{
@@ -279,7 +279,7 @@ mutation{
 
 ref: [https://apidocs.chargebee.com/docs/api/customers?prod_cat_ver=1#create_a_customer](https://apidocs.chargebee.com/docs/api/customers?prod_cat_ver=1#create_a_customer)
 
-## mutation updatePayment
+### mutation updatePayment
 
 return hosted page. paywalld's client can use this API to allow customer to update his payment way.
 
@@ -296,7 +296,7 @@ mutation{
 
 ref: [https://apidocs.chargebee.com/docs/api/hosted_pages#manage_payment_sources](https://apidocs.chargebee.com/docs/api/hosted_pages#manage_payment_sources)
 
-## mutation checkoutOneTimePageAmount
+### mutation checkoutOneTimePageAmount
 
 for PPU. return hosted page. no need add-on.
 
@@ -324,7 +324,7 @@ Two ways:
 - The backend service uses `hosted_page.id` to query the payment status. If paid, the backend can save the state for future reference.
 ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page)
 
-## mutation checkoutOneTimePageQuantity
+### mutation checkoutOneTimePageQuantity
 
 for PPU. return hosted page. The add-on should be created in advance, and its `Charge Type` must be `One-time`.  And share it with the client of paywalld, such as MediaMind.
 
@@ -368,7 +368,7 @@ e.g.
 
 ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkoutOneTime-usecases](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkoutOneTime-usecases)
 
-## mutation checkoutOneTimeInvoiceAmount
+### mutation checkoutOneTimeInvoiceAmount
 
 for PPU. API returns the status of invoice. It applies to the case that no need the confirmation from customer, such as `mm_takelive` of `tvusearch`. no add-on. Need to check customer's billing information before using it in business logic. 
 ref: [https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases](https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases)
@@ -390,7 +390,7 @@ mutation {
 }
 ```
 
-## mutation checkoutOneTimeInvoiceQuantity
+### mutation checkoutOneTimeInvoiceQuantity
 
 `add-on` can be used here. It should be created in advance, and its `Charge Type` must be `One-time`. The client of paywalld, such as MediaMind.
 ref: [https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases](https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases)
@@ -413,7 +413,7 @@ mutation {
 }
 ```
 
-## mutation cancelSubscription
+### mutation cancelSubscription
 
 `paywalld` ensures that one `plan` just has one `subscription` for one user.  Return the same structure as `query subscription` did.
 
@@ -434,7 +434,7 @@ query {
 
 ref:  [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#cancel_a_subscription](https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#cancel_a_subscription)
 
-## mutation cancelInvoice
+### mutation cancelInvoice
 
 If a prepay invoice fails to charge, it should be canceled immediately.
 
@@ -453,7 +453,7 @@ query {
 
 ref:
 
-## mutation checkoutNewSubscription
+### mutation checkoutNewSubscription
 
 return hosted page.  Return `success` when the customer has an existing plan already.
 
@@ -479,7 +479,7 @@ ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkou
 paywalld should provide an API to receive the notification from Chargebee for event `subscription renewed`.  Its format is listed in Appendix 1.
 ref: [https://tvunetworks-test.chargebee.com/apikeys_and_webhooks/webhooks](https://tvunetworks-test.chargebee.com/apikeys_and_webhooks/webhooks)
 
-## mutation checkoutNewSubscriptionInvoice
+### mutation checkoutNewSubscriptionInvoice
 
 If no suitable payment method, this API returns `failure` .  If the customer has an existing and active plan, API returns `success`.
 
@@ -511,7 +511,7 @@ mutation {
 [PK] copy the custom field `billing credit` of `plan` onto the custom field `billing credit` of `subcription`.  It follows JSON.
 ref: [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#create_subscription_for_customer](https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#create_subscription_for_customer)
 
-## mutation checkoutExistingSubscriptionInvoice
+### mutation checkoutExistingSubscriptionInvoice
 
 checkout an existing subscription with billing_type(add_on). API returns the status of invoice. So it can use the same class as the return value of checkoutOnetimeInvoice.
 
@@ -562,27 +562,27 @@ And invoice addon with the non-free quantity(charging quantity - remained credit
 ref: [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription](https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription)
 10. [PK] Return the information of `invoice`.
 
-## mutation checkoutExistingSubscriptionPage
+### mutation checkoutExistingSubscriptionPage
 
 typically in the trial state
 
 ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkout_existing_subscription](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkout_existing_subscription)
 
-## mutation createPlan
+### mutation createPlan
 
-## mutation createChargeItem
+### mutation createChargeItem
 
-# Billing models and their essential APIs
+## Billing models and their essential APIs
 
-## 1. PPU
+### 1. PPU
 
-### case1: the business service knows the final price before carry out the action
+#### case1: the business service knows the final price before carry out the action
 
 mutation `checkoutOneTimePageAmount`
 
 e.g.  Before downloading a file, we know its total price. 
 
-### case2: the business service knows the final price after carried out the action
+#### case2: the business service knows the final price after carried out the action
 
 query `customer`: use this API to check whether customer has correctly filed his payment way.
 
@@ -590,19 +590,19 @@ mutation `checkoutOneTimeInvoiceAmount`: charge customer when we know the final 
 
 e.g. We don't know the final price until the "takelive" stopped.
 
-### case3: the business service knows the count of charged item before carry out the action
+#### case3: the business service knows the count of charged item before carry out the action
 
 mutation `checkoutOneTimePageQuantity`
 
-### case4: the business service knows the count of charged item after carried out the action
+#### case4: the business service knows the count of charged item after carried out the action
 
 query `customer`: use this API to check whether customer correctly filed his payment way.
 
 mutation `checkoutOneTimeInvoiceQuantity`: charge customer when we know the final amount of the bill.
 
-## 2. SUB
+### 2. SUB
 
-### case 5: charge customer a fixed amount each charging period
+#### case 5: charge customer a fixed amount each charging period
 
 query `subscription`: use this API to check whether the customer has an active subscription of the plan.
 
@@ -610,9 +610,9 @@ mutation `checkoutNewSubscription`
 
 mutation `checkoutExistingSubscriptionInvoice`:  this is optional for this case.
 
-## 3. SUB+PPU
+### 3. SUB+PPU
 
-### case 6: charge customer a fixed amount each charging period and extra charge customer when he carry out the action that is not free
+#### case 6: charge customer a fixed amount each charging period and extra charge customer when he carry out the action that is not free
 
 query subscription: use this API to check whether the customer has an active subscription of the plan.
 
@@ -620,13 +620,13 @@ mutation `checkoutNewSubscription`
 
 mutation `checkoutExistingSubscriptionInvoice`
 
-## 4. SUB+PPU+PK
+### 4. SUB+PPU+PK
 
-### case 7: when customer subscribed a plan, he will get amount of free credits for the charge item
+#### case 7: when customer subscribed a plan, he will get amount of free credits for the charge item
 
 same as case 6. The details is hidden by paywalld.
 
-# Appendix
+## Appendix
 
 1. message body of subscription_renewed
 
