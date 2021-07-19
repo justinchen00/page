@@ -40,9 +40,9 @@ If just PPU billing model, that's it.
 e.g.
 For the charge item of `download`  in `TVUSearch` , there are multiple `addon` for different price: 
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/5d8c89c9-d997-46e7-b353-d0cc868aba58/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/5d8c89c9-d997-46e7-b353-d0cc868aba58/Untitled.png)
+	![image](https://user-images.githubusercontent.com/18137639/126103389-5a7bd14e-ce49-4c3c-ac1b-5026ea1322cf.png)
 
-![https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0d6a6327-af97-467f-8071-b0ad6f8ce296/Untitled.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0d6a6327-af97-467f-8071-b0ad6f8ce296/Untitled.png)
+	![image](https://user-images.githubusercontent.com/18137639/126103445-3bb4cf54-11b9-4014-a07f-b0f6e517b970.png)
 
 1. If you have subscription, need to create `plan` ; set `Restricted addons`; attach those related `addon` to it in the way of `On Demand`.
 2. If needing PK, please assign a string to the custom field `billing credit` of `plan`, which follows
@@ -51,7 +51,7 @@ For the charge item of `download`  in `TVUSearch` , there are multiple `addon` f
     e.g. 
     For `TVU Search` ,  the customer who subscribes the plan will have 50 seconds credits for downloading.
 
-        ```json
+        ```
         {
             "mm_download": 50,
             "mm_live": 0
@@ -73,7 +73,7 @@ For the charge item of `download`  in `TVUSearch` , there are multiple `addon` f
 
 Retrieve a customer's information of payment method and those exceptional invoices. All exceptional invoices and its content can be achieved by this API.
 
-```jsx
+```
 query{
   customer(customerId:"justinchen@tvunetworks.com",
            product: "TVUSearch"
@@ -108,7 +108,7 @@ paywalld's client can use this API to
 2. the ceiling of feature, which is presented in attachedItems.quantity.
 3. get its remaining credit
 
-```jsx
+```
 query{
   plan(
         customerId: "justinchen@tvunetworks.com",
@@ -148,7 +148,7 @@ For fetching the value of `billingType` of addon, please use the filter, such as
 
 paywalld's client can use this API to get the existing plan.
 
-```jsx
+```
 query{
   plans(
         product: "TVUSearch"
@@ -167,7 +167,7 @@ return the information of customer's subscription.  paywalld's client can use th
 
 `paywalld` ensures that one `plan` just has one `subscription` for one user.
 
-```jsx
+```
 query {
     subscription (
         customerId: "justinchen@tvunetworks.com",
@@ -190,7 +190,7 @@ The explanation of `status`: [https://apidocs.chargebee.com/docs/api/subscriptio
 
 Retrieve all information of `addon`.  paywalld's client can use this API to get its quoted price.
 
-```jsx
+```
 query{
   chargeItem (
         customerId: "justinchen@tvunetworks.com",   //which is useless for paywalld now
@@ -214,7 +214,7 @@ ref: [https://apidocs.chargebee.com/docs/api/addons?prod_cat_ver=1#retrieve_an_a
 
 The end-user can use the self-service portal to maintain their billing information / invoice / subscription.
 
-```jsx
+```
 query{
   customerPortal (
         customerId: "justinchen@tvunetworks.com",
@@ -234,7 +234,7 @@ ref: [https://apidocs.chargebee.com/docs/api/portal_sessions?prod_cat_ver=1#crea
 
 client can use it to check the final status of checkout.
 
-```jsx
+```
 query{
   customerPortalStatus (
         hostedPageID: "b9Z5Sce6AxFBNBMLu4qcuJHFthSF4VI0I"
@@ -262,7 +262,7 @@ ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retriev
 
 ### mutation createCustomer
 
-```jsx
+```
 mutation{
   createCustomer(
     customerId:"justinchen@tvunetworks.com",	//using TVU's account(email address) as Chargebee(CB)'s ID
@@ -283,7 +283,7 @@ ref: [https://apidocs.chargebee.com/docs/api/customers?prod_cat_ver=1#create_a_c
 
 return hosted page. paywalld's client can use this API to allow customer to update his payment way.
 
-```jsx
+```
 mutation{
   updatePayment(customerId:"justinchen@tvunetworks.com")
   {
@@ -300,7 +300,7 @@ ref: [https://apidocs.chargebee.com/docs/api/hosted_pages#manage_payment_sources
 
 for PPU. return hosted page. no need add-on.
 
-```jsx
+```
 mutation {
     checkoutOneTimePageAmount (
         customerId:"justinchen@tvunetworks.com",
@@ -328,7 +328,7 @@ ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retriev
 
 for PPU. return hosted page. The add-on should be created in advance, and its `Charge Type` must be `One-time`.  And share it with the client of paywalld, such as MediaMind.
 
-```jsx
+```
 mutation {
     checkoutOneTimePageQuantity (
     customerId:"justinchen@tvunetworks.com",
@@ -349,7 +349,7 @@ mutation {
 `hosted page`:
 e.g.
 
-```jsx
+```
 {
     "hosted_page": {
         "id": "b3coJuK1RJkcoRCP69d9gdqCKMcOcwxy",
@@ -373,7 +373,7 @@ ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkou
 for PPU. API returns the status of invoice. It applies to the case that no need the confirmation from customer, such as `mm_takelive` of `tvusearch`. no add-on. Need to check customer's billing information before using it in business logic. 
 ref: [https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases](https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases)
 
-```jsx
+```
 mutation {
     checkoutOneTimeInvoiceAmount (
         customerId:"justinchen@tvunetworks.com",
@@ -395,7 +395,7 @@ mutation {
 `add-on` can be used here. It should be created in advance, and its `Charge Type` must be `One-time`. The client of paywalld, such as MediaMind.
 ref: [https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases](https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create-usecases)
 
-```jsx
+```
 mutation {
     checkoutOneTimeInvoiceQuantity (
     customerId:"justinchen@tvunetworks.com",
@@ -417,7 +417,7 @@ mutation {
 
 `paywalld` ensures that one `plan` just has one `subscription` for one user.  Return the same structure as `query subscription` did.
 
-```jsx
+```
 query {
     cancelSubscription (
         customerId: "justinchen@tvunetworks.com",
@@ -438,7 +438,7 @@ ref:  [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#cance
 
 If a prepay invoice fails to charge, it should be canceled immediately.
 
-```jsx
+```
 query {
     cancelInvoice (
         customerId: "justinchen@tvunetworks.com",
@@ -457,7 +457,7 @@ ref:
 
 return hosted page.  Return `success` when the customer has an existing plan already.
 
-```jsx
+```
 mutation {
     checkoutNewSubscription (
         customerId: "justinchen@tvunetworks.com",
@@ -483,7 +483,7 @@ ref: [https://tvunetworks-test.chargebee.com/apikeys_and_webhooks/webhooks](http
 
 If no suitable payment method, this API returns `failure` .  If the customer has an existing and active plan, API returns `success`.
 
-```jsx
+```
 mutation {
     checkoutNewSubscriptionInvoice (
         customerId: "justinchen@tvunetworks.com",
@@ -517,7 +517,7 @@ checkout an existing subscription with billing_type(add_on). API returns the sta
 
 paywalld's client can use this API to charge customer's add-on that attaches to an active subscription.
 
-```jsx
+```
 mutation {
     checkoutExistingSubscriptionInvoice (
         customerId: "justinchen@tvunetworks.com",
@@ -630,7 +630,7 @@ same as case 6. The details is hidden by paywalld.
 
 1. message body of subscription_renewed
 
-```json
+```
  {
     "id": "ev_Azz5oUSRtOs3v1CkB",
     "occurred_at": 1615960809,
