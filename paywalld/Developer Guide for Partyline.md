@@ -17,7 +17,7 @@ workflow and related APIs
 2. query plan
    fetch the details of each plan for display.
 3. mutation checkoutNewSubscription
-   provides `a hosted page` for customer to finish checkout/create new subscription for given valid plan ID. 
+   provides `a hosted page` for customers to finish checkout/create a new subscription for a given valid plan ID. 
    [TUTORIALS](https://www.chargebee.com/checkout-portal-docs/checkout-new-tutorial.html) or consult my team for how to use `the hosted page`
 
 ### Custom Rate Card
@@ -25,14 +25,14 @@ workflow and related APIs
 workflow and related APIs
 
 1. query plans
-  fetch the existing plans with `type`="custom" for given product
+   fetch the existing plans with `type`="custom" for given product
 2. query plan
-  fetch the details of each plan, 
+   fetch the details of each plan, 
 3. query previewCustomSubscription
-  return the price
+   return the price
 4. mutation checkoutNewSubscription
-  Based on the provided number of charge items and formula, generates a new subscription. Then provides `a hosted page` for customer to finish checkout/create new subscription for given valid plan ID. 
-  [TUTORIALS](https://www.chargebee.com/checkout-portal-docs/checkout-new-tutorial.html) or consult my team for how to use `the hosted page`
+   Based on the provided number of charge items and formula, generates a new subscription. Then provides `hosted page` for customers to finish checkout/create new subscriptions for a given valid plan ID. 
+   [TUTORIALS](https://www.chargebee.com/checkout-portal-docs/checkout-new-tutorial.html) or consult my team for how to use `the hosted page`
 
 
 
@@ -50,7 +50,7 @@ workflow and related APIs
   {"formula": "$partyline-hour*0.25*(2*$partyline-participant*(1+225/100)+$partyline-output*(1+225/100))"}
   ```
 
-  the attribute  `mandatory`/`Recommended` of addon could be utilized in business layer.
+  the attribute  `mandatory`/`Recommended` of addon could be utilized in the business layer.
 
 * the client of paywalld needs to save and understand the meaning of `billing type` and create the mapping relationship between the business action with its `billing type`.
 
