@@ -1,6 +1,6 @@
 # Developer Guide for Partyline
 
-## Client of Charge Service:
+## 1. for the Client of Charge Service:
 
 ### Common API
 
@@ -34,9 +34,7 @@ workflow and related APIs
    Based on the provided number of charge items and formula, generates a new subscription. Then provides `hosted page` for customers to finish checkout/create new subscriptions for a given valid plan ID. 
    [TUTORIALS](https://www.chargebee.com/checkout-portal-docs/checkout-new-tutorial.html) or consult my team for how to use `the hosted page`
 
-
-
-## PM:
+## 2. for PM:
 
 * need to  preset a plan with price $0 for custom plan.  add all optional add-on to it. providing readable `Description`
 
@@ -52,17 +50,15 @@ workflow and related APIs
 
   the attribute  `mandatory`/`Recommended` of addon could be utilized in the business layer.
 
-* the client of paywalld needs to save and understand the meaning of `billing type` and create the mapping relationship between the business action with its `billing type`.
+* Partyline needs to save `chargeItem` and create the mapping relationship between the business features with them. 
+  Such as,  `partyline-output`=2 means the user allows to have 2 outputs at most.
 
-* when there are several addons with the same `billing type`, addon's name will be parsed for some purposes. 
+* It's not feasible to get the value of the addon attribute CF("cf_billing_type") via one API invoking. Using a loop to fetch attributes of each addon is time-consuming. It's fine for `TVUSearch`. Because there are just two addons. However, For Partyline, a plan will be attached with lots of addons, and those addons remain unchanged after the billing model is nailed down. So let's use the addon.id as the feature name and no need to change CF("cf_billing_type").  
+  Please make sure the addon.id of Partyline is short and straightforward, such as `pl-output` or `partyline-output`.
 
-
-
-
-
-## Dev of Charge Service:
+## 3. More documents
 
 1. Miro
    https://miro.com/app/board/o9J_lbF7xGI=/?moveToWidget=3074457361905206409&cot=14
-2. `pl-hour` is a dynamic value. 
+2. 
 
