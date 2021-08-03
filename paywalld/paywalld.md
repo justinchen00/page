@@ -178,7 +178,7 @@ ref: https://apidocs.chargebee.com/docs/api/plans?prod_cat_ver=1#list_plans
 
 return the information of customer's subscription.  paywalld's client can use this API to check whether the customer has an active subscription of the plan and its remaining credit.
 
-`paywalld` ensures that one `plan` just has one `subscription` for one user.
+`paywalld` ensures that a user just has one active `subscription` for one `plan`.
 
 ```
 query {
@@ -196,7 +196,7 @@ query {
 }
 ```
 
-ref:  [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#retrieve_a_subscription](https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#retrieve_a_subscription)
+ref:  https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#list_subscriptions
 The explanation of `status`: [https://apidocs.chargebee.com/docs/api/subscriptions#subscription_status](https://apidocs.chargebee.com/docs/api/subscriptions#subscription_status)
 
 ### query chargeItem
@@ -225,18 +225,18 @@ ref: [https://apidocs.chargebee.com/docs/api/addons?prod_cat_ver=1#retrieve_an_a
 
 ### query permission
 
-For Partyline, its `pl-hour`  saves the maximum credit and it's static. This user's real usage is got from Usage Service, which calculates from the moment that subscription was activated or updated. So it's a dedicated logic for Partyline.
+For Partyline, its `pl-hour` saves the maximum credit and it's static. This user's real usage is got from Usage Service, which calculates from the moment that subscription was activated or updated. So it's a dedicated logic for Partyline.
 
 ```
 query{
   permission (
         customerId: "justinchen@tvunetworks.com",
         product: "Partyline",				# Partyline user just has one plan at a time. So no plan argument here.
-        billingTypes: "string in JSON",		# sample listed below 				
+        chargeItems: "string in JSON",		# sample listed below 				
                                             {
                                                 "version":1,
-                                                "pl-participant":8,
-                                                "pl-output":4
+                                                "partyline-participant":8,
+                                                "partyline-output":4
                                             }  
                                             
                                             OR:
@@ -244,11 +244,11 @@ query{
                                             	"version":2,
                                             	"chargeItems": [
                                                 {
-                                                "id": "pl-participant",
+                                                "id": "partyline-participant",
                                                 "quantity": 8,
                                                 },
                                                 {
-                                                "id": "pl-output",
+                                                "id": "partyline-output",
                                                 "quantity": 4,
                                                 }
                                             	]
@@ -256,7 +256,7 @@ query{
     ) {
 	    remainHours			# The quantity of chargeItems - usage 
 		permission {		# []
-			id		# pl-participant
+			id		# partyline-participant
 			ceiling		# 8
 			allow		# true/false
 		}	
@@ -267,6 +267,35 @@ query{
 ref:  Usage Service:
 https://showdoc.tvunetworks.com/web/#/111?page_id=3230
 https://211.160.178.10:23256/usageService/#/infoView
+
+e.g.  
+the quantity of `partyline-participant` is 6, which means this user who has this subscription is allowed to convene a meeting with 6 participants at most.
+
+```
+"addons": [
+                    {
+                        "id": "partyline-hour",
+                        "quantity": 5,
+                        "unit_price": 0,
+                        "amount": 0,
+                        "object": "addon"
+                    },
+                    {
+                        "id": "partyline-participant",
+                        "quantity": 6,
+                        "unit_price": 0,
+                        "amount": 0,
+                        "object": "addon"
+                    },
+                    {
+                        "id": "partyline-output",
+                        "quantity": 2,
+                        "unit_price": 0,
+                        "amount": 0,
+                        "object": "addon"
+                    }
+                ],
+```
 
 ### query customerPortal
 
@@ -564,7 +593,7 @@ ref:
 
 ### mutation checkoutNewSubscription
 
-providing a hosted page for customers to finish checkout/create new subscriptions for given valid plan ID.  Return `success` when the customer has an existing plan already.
+providing a hosted page for customers to finish checkout/create new subscriptions for given valid plan ID.  Return `success` when the customer has an active subscription of the plan already.
 
 ```
 mutation {
