@@ -60,9 +60,9 @@ the attribute  `mandatory`/`Recommended` of addon could be utilized in the busin
   Please make sure the addon.id of Partyline is short and straightforward, such as `pl-output` or `partyline-output`.
   
 * For each addon mosaic*, its attributes will be a part of the formula.
-  
-e.g.  `mosaic7x7.weight` means the `weight` value saved in JSON metadata of addon `mosaic7x7`, which is 49.
-  ![image-20210804002331691](C:\Users\justi\AppData\Roaming\Typora\typora-user-images\image-20210804002331691.png) 
+  e.g.  `mosaic7x7.weight` means the `weight` value saved in JSON metadata of addon `mosaic7x7`, which is 49.
+  ![image](https://user-images.githubusercontent.com/18137639/128147207-8e954061-79dc-4eb2-8fb8-cf599d3652ca.png)
+
   
   e.g. Selling Price for Gallery:
   
@@ -82,10 +82,10 @@ e.g.  `mosaic7x7.weight` means the `weight` value saved in JSON metadata of addo
   mosaics: `3x3, 4x4, 4x4, 6x6, 7x7, 0, 0, 0`
   The addons for this are:
   
-- `Mosaic3x3`
-  - `Mosaic4x4`*2
-- `Mosaic6x6`
-  - `Mosaic7x7`
+   - `Mosaic3x3`
+   - `Mosaic4x4`*2
+   - `Mosaic6x6`
+   - `Mosaic7x7`
 
   In the price calculator for mosaic, the formula is:
   
