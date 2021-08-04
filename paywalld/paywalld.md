@@ -7,14 +7,14 @@ JustinChen@TVU
 1. 20210424 the first version that have been deployed for TVUSearch
 2. 20210525 add a new API `mutation checkoutNewSubscriptionInvoice` for Partyline
 3. 20210526 enhance the feature of `query plan` for Partyline
-   added a new API `mutation cancelSubscription`
+added a new API `mutation cancelSubscription`
 4. 20210527 added a new API `query customerPortalStatus`
 5. 20210531 `query subscription` and `query plan` support checking `remaining credit`
 6. 20210607 added a new API `mutation cancelInvoice`
-   enhance the feature of `query customer` to support getting the unpaid invoices.
+enhance the feature of `query customer` to support getting the unpaid invoices.
 7. 20210801 added a new argument `type` 
-   new API `query previewCustomSubscription`
-     new API `query permission`
+    new API `query previewCustomSubscription`
+    new API `query permission`
 
 ## Some terms in the document:
 
@@ -39,40 +39,34 @@ All pre-configuration listed below can be added in the console of Chargebee.  Yo
 For a new service, we should do:
 
 1. append a new option to the custom field `TVU Service Type` of `plan` and `subscription`, which includes `TVUSearch`/`Producer`/`Partyline` now.  
-
 2. append new options to the custom field `Billing Type` of `Addons`for each charge Item.  
-   For `TVUSearch`, it includes `mm_download`/`mm_live`.  
-   For `Partyline`, it includes `pl_partitant`/`pl_output`/`pl_hours`. 
-
+For `TVUSearch`, it includes `mm_download`/`mm_live`.  
+For `Partyline`, it includes `pl_partitant`/`pl_output`/`pl_hours`. 
 3. create a non-recurring `addon` for each charge Item and choose `Billing Type`. `addon` is still required even if it's free. Its price could be $0. Normally, `Pricing Model` is `Per Unit`.
-   If just PPU billing model, that's it.
-   e.g.
-   For the charge item of `download`  in `TVUSearch` , there are multiple `addon` for different price: 
+If just PPU billing model, that's it.
+e.g.
+For the charge item of `download`  in `TVUSearch` , there are multiple `addon` for different price: 
 
-   ![image](https://user-images.githubusercontent.com/18137639/126103389-5a7bd14e-ce49-4c3c-ac1b-5026ea1322cf.png)
+	![image](https://user-images.githubusercontent.com/18137639/126103389-5a7bd14e-ce49-4c3c-ac1b-5026ea1322cf.png)
 
-   ![image](https://user-images.githubusercontent.com/18137639/126103445-3bb4cf54-11b9-4014-a07f-b0f6e517b970.png)
+	![image](https://user-images.githubusercontent.com/18137639/126103445-3bb4cf54-11b9-4014-a07f-b0f6e517b970.png)
 
-4. If project needs to bill customer periodically, you need to create `plan` ; set `Restricted addons`; attach those related `addon` to it in the way of `On Demand`.
+1. If project needs to bill customer periodically, you need to create `plan` ; set `Restricted addons`; attach those related `addon` to it in the way of `On Demand`.
+2. If needing PK, please assign a string to the custom field `billing credit` of `plan`, which follows
+    - JSON representation
+    - object key is the same value of `Billing Type`
+    e.g. 
+    For `TVU Search` ,  the customer who subscribes to the plan will have 50 seconds credits for downloading.
 
-5. If needing PK, please assign a string to the custom field `billing credit` of `plan`, which follows
+        ```
+        {
+            "mm_download": 50,
+            "mm_live": 0
+        }
+        ```
 
-   - JSON representation
-
-   - object key is the same value of `Billing Type`
-     e.g. 
-     For `TVU Search` ,  the customer who subscribes to the plan will have 50 seconds credits for downloading.
-
-       ```
-       {
-           "mm_download": 50,
-           "mm_live": 0
-       }
-       ```
-
-6. share the new added `TVU Service Type` and `Billing Type` with your engineer
-
-7. done
+3. share the new added `TVU Service Type` and `Billing Type` with your engineer
+4. done
 
 ## Notes:
 
@@ -460,7 +454,7 @@ Two ways:
 
 - The frontend web page can handle it. The prerequisite is paywalld needs to enable `iframe_messaging` while getting the hosted page.
 - The backend service uses `hosted_page.id` to query the payment status. If paid, the backend can save the state for future reference.
-  ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page)
+ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page)
 
 ### mutation checkoutOneTimePageQuantity
 
@@ -685,32 +679,24 @@ ref: [https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create_invo
 Internal workflow:
 
 1. check whether the customer has an active subscription. if has no, return error.
-
 2. check whether the customer has no unbilled charges. If it has, return error.
-
 3. get `plan` 's `applicable_addons` list.
-   ref: [https://apidocs.chargebee.com/docs/api/plans#retrieve_a_plan](https://apidocs.chargebee.com/docs/api/plans#retrieve_a_plan)
-
+ref: [https://apidocs.chargebee.com/docs/api/plans#retrieve_a_plan](https://apidocs.chargebee.com/docs/api/plans#retrieve_a_plan)
 4. get the addon ID whose `cf_billing_type` has the same value as "billing_type" of the API input.
-
 5. If the custom field `billing credit` of `subscription` is empty, no PK is involved.
-   directly invoices `addon` with the `quantity` in API to the customer.
-   Return the information of `invoice`. Most important value is "invoice"."amount_paid" and
+directly invoices `addon` with the `quantity` in API to the customer.
+Return the information of `invoice`. Most important value is "invoice"."amount_paid" and
 
     "invoice"."[status](https://apidocs.chargebee.com/docs/api/invoices#invoice_status)"
 
 6. [PK] If `billing credit` has value, parse it and get the remaining `credit/quantity` of the addon of the subscription.
-
 7. [PK] if (remained credit >= charging `quantity` in API)
-   invoice addon with the `quantity` in API, but its price should be $0(addon_unit_price=$0).
-
+invoice addon with the `quantity` in API, but its price should be $0(addon_unit_price=$0).
 8. [PK] if (remaining credit < charging `quantity` in API)
-   invoice addon with those remaining credit in $0.
-   And an invoice addon with the non-free quantity(charging quantity - remaining credit) in the default price.
-
+invoice addon with those remaining credit in $0.
+And an invoice addon with the non-free quantity(charging quantity - remaining credit) in the default price.
 9. [PK] If invoice.status == paid, update the JSON of the custom field `billing credit` of `subscription`.
-   ref: [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription](https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription)
-
+ref: [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription](https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#update_a_subscription)
 10. [PK] Return the information of `invoice`.
 
 ### mutation checkoutExistingSubscriptionPage
@@ -848,4 +834,4 @@ same as case 6. The details are hidden by paywalld.
 ```
 
 1. [engineer] The API of Chargebee has two big versions. V1 and V2.
-   For V2, there are two small versions, prod_cat_ver=1 and prod_cat_ver=2. we are using is `prod_cat_ver=1`, which was the stable version when we started developing paywalld. [https://apidocs.chargebee.com/docs/api/](https://apidocs.chargebee.com/docs/api/)
+For V2, there are two small versions, prod_cat_ver=1 and prod_cat_ver=2. we are using is `prod_cat_ver=1`, which was the stable version when we started developing paywalld. [https://apidocs.chargebee.com/docs/api/](https://apidocs.chargebee.com/docs/api/)
