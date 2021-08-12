@@ -1,12 +1,12 @@
 # Developer Guide for Partyline
 
-## 1. for the Client of Charge Service:
+## 1. for the client of Billing Service:
 
-### Common API
+### essential APIs
 
-check operation permission.
-
-query previewCustomSubscription
+[query cpermission](https://justinchen00.github.io/page/billingservice/API%20definition.html#query-permission)
+[query previewCustomSubscription](https://justinchen00.github.io/page/billingservice/API%20definition.html#query-previewcustomsubscription)
+[mutation checkoutNewSubscription](https://justinchen00.github.io/page/billingservice/API%20definition.html#mutation-checkoutnewsubscription)
 
 ### Common Rate Card
 
