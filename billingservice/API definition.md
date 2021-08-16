@@ -6,14 +6,15 @@ JustinChen@TVU
 
 1. 20210424 the first version that have been deployed for TVUSearch
 2. 20210525 add a new API `mutation checkoutNewSubscriptionInvoice` for Partyline
-3. 20210526 enhance the feature of `query plan` for Partyline
+3. 20210526 enhance the feature of `query plan` for Partyline; 
 added a new API `mutation cancelSubscription`
 4. 20210527 added a new API `query customerPortalStatus`
 5. 20210531 `query subscription` and `query plan` support checking `remaining credit`
 6. 20210607 added a new API `mutation cancelInvoice`
 enhance the feature of `query customer` to support getting the unpaid invoices.
-7. 20210801 added a new argument `type` 
-    new API `query previewCustomSubscription`
+7. 20210801 new argument `type` of `query plans`; 
+    new argument `chargeItems` of `mutation checkoutNewSubscription `;
+    new API `query previewCustomSubscription`; 
     new API `query permission`
 
 ## Some terms in the document:
@@ -346,7 +347,7 @@ ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retriev
 calculate the price of the subscription. 
 
 ```
-mutation {
+query {
     previewCustomSubscription (
         customerId: "justinchen@tvunetworks.com",	# reserved
 		product: "Partyline",						# case insensitive
