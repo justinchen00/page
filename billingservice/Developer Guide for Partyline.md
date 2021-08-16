@@ -72,7 +72,7 @@ It's not feasible to get the value of the addon attribute CF("cf_billing_type") 
   ![image](https://user-images.githubusercontent.com/18137639/128147207-8e954061-79dc-4eb2-8fb8-cf599d3652ca.png)
 
   
-  e.g. Price of Gallery:
+  e.g. Price formula of the plan `partyline-gallery`:
   
   ```python
   {"formula": "$partyline-hour.quantity*(0.25*($partyline-output.quantity*(1+2.5) + $partyline-participant.quantity*(1+2.5) + sum(mosaics)*(1+2.5) + 0.085*max(mosaics)*(1+2.5)}"}
