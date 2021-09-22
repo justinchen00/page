@@ -9,13 +9,9 @@
 ## 1. for the client of Billing Service:
 
 ### essential APIs
-
 [query permission](https://justinchen00.github.io/page/billingservice/API%20definition.html#query-permission);
-
 [query previewCustomSubscription](https://justinchen00.github.io/page/billingservice/API%20definition.html#query-previewcustomsubscription);
-
 [mutation checkoutNewSubscription](https://justinchen00.github.io/page/billingservice/API%20definition.html#mutation-checkoutnewsubscription);
-
 
 ### Common Rate Card
 
@@ -43,9 +39,18 @@ workflow and related APIs
     Based on the number of charge items and plan provided by customer, generates a new subscription. Then provides `hosted page` for customers to finish checkout/create new subscriptions for a given valid plan ID. 
     [TUTORIALS](https://www.chargebee.com/checkout-portal-docs/checkout-new-tutorial.html) or consult my team for how to use `the hosted page`
 
+### Prepaid modal
+
+This modal is the same as `Custom Rate Card`, except for:
+
+1. the term of the billing period of the subscription is 3 months. non-recurring.
+2. During calculating the remained credit, the start time of usage will be the moment when the term starts.
+
 ## 2. for PM:
 
-* need to  preset a plan with price $0 for custom plan.  add all optional add-on to it. providing readable `Description`
+* need to create a plan with price $0 for custom plan in advance.  add all optional add-on to it. providing readable `Description`
+
+* need to prefix the plan Id with the same string for the same project. Such as, we use `partyline` for `Partyline`
 
 * need a custom field to tag the custom plan. I created a CF named  `Custom`
 

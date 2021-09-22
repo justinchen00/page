@@ -16,6 +16,8 @@ enhance the feature of `query customer` to support getting the unpaid invoices.
     new argument `chargeItems` of `mutation checkoutNewSubscription `;
     new API `query previewCustomSubscription`; 
     new API `query permission`
+8. 20210820 clarify the argument `planId` in `query subscription`; 
+
 
 ## Some terms in the document:
 
@@ -159,7 +161,7 @@ fetch the existing plan list for given product
 query{
   plans(
         product: "TVUSearch"
-        type: "all"  # "all"/"non-custom"/"custom", default is "all"; non-custom=common
+        planType: "all"  # "all"/"common"/"custom", default is "all";
     ) {
         "number": 2,
         "planIds":[ "mm_fednet5_subppu_199", "mm_fednet_special_knbc_0" ]
@@ -173,14 +175,14 @@ ref: https://apidocs.chargebee.com/docs/api/plans?prod_cat_ver=1#list_plans
 
 return the information of customer's subscription.  paywalld's client can use this API to check whether the customer has an active subscription of the plan and its remaining credit.
 
-`paywalld` ensures that a user just has one active `subscription` for one `plan`.
+`paywalld` ensures that a user just has one active `subscription` for one `plan` in TVUSearch;  a user just has one active  `subscription` in `Partyline`.
 
 ```
 query {
     subscription (
         customerId: "justinchen@tvunetworks.com",
         product: "TVUSearch",
-        planId: "jj_plan_pk"
+        planId: "jj_plan_pk"	# In `Partyline`, this option will be optional 
     ) {
          subscriptionId
          status             # active/future/in_trial/non_renewing/paused/cancelled
@@ -607,7 +609,7 @@ mutation {
 
 The argument of `chargeItems` will be meaningful as `plan` is `custom` and `formula` exists.
 
-The new price calculated by the formula of this plan and the number of `charge item` in the argument of `chargeItems` will override the original price of `plan`.
+The original price of `plan` will be override by the new price calculated on two factors: (1) the formula of this plan; (2) the number of `charge item` in the argument of `chargeItems` .
 
 [PK] copy the custom field `billing credit` of `plan` onto the custom field `billing credit` of `subscription`.  It follows JSON.
 `iframe_messaging` should be `true`. `embed` should be `true`.
