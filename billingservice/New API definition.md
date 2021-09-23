@@ -2,6 +2,8 @@
 
 JustinChen@TVU
 
+
+
 ## Change logs:
 
 1. 20210915 the first version
@@ -33,19 +35,20 @@ The new Billing Service should implement those features:
 
 ## Billing Service API
 
-###  query permission
+### query permission
 
 > used by APP & HouseKeeper
 
 For Partyline, its `partyline-hour` saves the static maximum credit. This user's real usage is obtained from Usage Service, which calculates from the moment that subscription was activated or updated to the moment when API is invoked. 
 If all `permission.allow`=`true` , APP is allowed to proceed.
+If the API returns the user has an unpaid invoice, App should guide user to open customer portal to maintain their payment information. `query customerPortal` can get the `customer portal`.
 
-```json
+```
 query{
   permission (
         customerId: "justinchen@tvunetworks.com",
-        product: "Partyline",				# Partyline user just has one plan at a time. So no plan argument here.
-        chargeItems: "string in JSON",		# sample listed below 				
+        product: "Partyline",				// Partyline user just has one plan at a time. So no plan argument here.
+        chargeItems: "string in JSON",		// sample listed below 				
                                             {
                                                 "version":1,
                                                 "partyline-participant":8,
@@ -67,17 +70,17 @@ query{
                                             	]
                                             }
     ) {
-	    remainHours			# The quantity of chargeItems - usage 
-		permission {		# []
-			id		# partyline-participant
-			ceiling		# 8
-			allow		# true/false
-		}	
+	    remainHours			// The quantity of chargeItems - usage 
+		permission {		// []
+			id			// partyline-participant
+			ceiling		// 8
+			allow		// true/false
+		},
+		redirectUrl: "the URL of the default plan list, or a self-service portal"
+		redirectReason: "need to upgrade plan, or there is an unpaid invoice"
     }
 }
 ```
-
-
 
 Usage Service API: 
 https://showdoc.tvunetworks.com/web/#/111?page_id=3313
@@ -96,7 +99,7 @@ query{
 
 The backend DB of Usage Service: https://usageservice.tvunetworks.com/#/infoView
 
-## query plans
+### query plans
 
 > used by embedded web
 
@@ -106,7 +109,7 @@ fetch the existing plans and their details for a given product.
 query{
   plans(
         product: "TVUSearch"
-        planType: "all"  # "all"/"common"/"custom", default is "all";
+        planType: "all"  // "all"/"common"/"custom", default is "all";
     ) {
         "number": 2,
         "planIds":[ "mm_fednet5_subppu_199", "mm_fednet_special_knbc_0" ]
@@ -114,7 +117,7 @@ query{
 }
 ```
 
-## query previewCustomSubscription
+### query previewCustomSubscription
 
 calculate the price of the custom subscription. 
 
@@ -195,7 +198,7 @@ If the payment succeeds, it is marked as `paid`. If the payment fails, the invoi
 
 ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page)[https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status](https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status)
 
-## mutation checkoutNewSubscription
+### mutation checkoutNewSubscription
 
 > used by embedded web
 
@@ -222,18 +225,65 @@ Internal logic:
 2. checkout OneTime Invoice(https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkoutOneTime-usecases), return a hosted page;
 3. save hostedPageID & the string of chargeItems to the database table `payment` to log 
 4. our embedded web uses `query customerPortalStatus` to get the payment status. The embedded web should inform App of the status. 
-5. At the same time, the backend should wait for the webhook from Chargebee. We can check the payment status in its handler.
-6. The payment status and invoiceID can be obtained from the previous two steps.  Based on the record saved in table `payment` , create `subscription` in `subscription` table and set status to valid if we get the explicit `paid` status from Chargebee.  The table `subaddon` should be updated too.
+5. At the same time, the backend should wait for the callback from Chargebee. We can check the payment status in its handler.
+6. Chargebee will pass the invoice status to `mutation eventNotify` via web hook.
+7. The payment status and invoiceID can be obtained from the previous three steps.  They have the same logic. The relationship between `subscriptionID` and `invoiceID` will be created there and saved in table `payment`.
+8. Based on the record saved in table `payment` , insert a new record to `subscription` table and set the status of subscription to `valid` , and table `subaddon` should be updated too. 
 
 #### `cron` task
 
-A cron task is created to scan the valid subscription and abnormal invoices each day.
+Two cron task is created to scan the valid subscription and abnormal invoices each day.
+
+### query customerPortal
+
+The end-user can use the self-service portal to maintain their billing information / invoice / subscription. You
+
+```
+query{
+  customerPortal (
+        customerId: "justinchen@tvunetworks.com",
+        product: "TVUSearch",
+        redirectUrl: "https://search.tvunetworks.com"	# optional. URL to redirect when the user logs out from the portal.
+    ) {
+        id          # "portal_AzZlxDSWcJOT1FvC",
+        token       # aRNcIRmnenKuV67D07JlT8tC07caVpPw",
+        access_url  # https://tvunetworks-test.chargebee.com/portal/v2/authenticate?token=aRNcIRmnenKuV67D07JlT8tC07caVpPw"
+    }
+}
+```
 
 ### mutation eventNotify
 
 > used by CB's webhook
 
 use it to get the status of the invoice. The format is defined by Chargebee.
+
+### mutation updateSubscription
+
+> used by embedded web
+
+providing a hosted page for customers to finish checkout/create new subscriptions for given valid plan ID.  Return `success` when the customer has an active subscription of the plan already.
+
+```
+mutation {
+    checkoutNewSubscription (
+        customerId: "justinchen@tvunetworks.com",
+		product: "Partyline",
+    	planId: "partyline-common-advance",
+    	chargeItems: "same JSON as query previewCustomSubscription",	// optional. It's meaningful while `plan` is `custom`
+    	subScriptionID: "..."		//optional for now.
+    ) {
+      hostedPage {
+          ...
+	  }
+    }
+}
+```
+
+Internal logic:
+
+1. If no `subScriptionID`, use the only existing one.
+2. no credit will be prorated for now!!!  Directly charge the customer the new price of new plan.
 
 ## HouseKeeper API
 
