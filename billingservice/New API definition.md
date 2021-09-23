@@ -11,15 +11,15 @@ JustinChen@TVU
 
 ## Guideline 
 
-Concept: https://docs.google.com/document/d/1kbozAs6vIr7dGajmTbhbqR4O2u3WCQUzsZfP4NBSUnE/edit
+[Concept](https://docs.google.com/document/d/1kbozAs6vIr7dGajmTbhbqR4O2u3WCQUzsZfP4NBSUnE/edit)
 
-Data Structure: https://docs.google.com/document/d/108J1mX22vblwRx7OgXGxaNQHYypfyKKP7kBFjGzusg0/edit
+[Data Structure](https://docs.google.com/document/d/108J1mX22vblwRx7OgXGxaNQHYypfyKKP7kBFjGzusg0/edit)
 
-Slack: https://join.slack.com/share/zt-w9dqrpc4-BvDkRy4pzXumeIiDmWf_4A
+[Slack](https://join.slack.com/share/zt-w9dqrpc4-BvDkRy4pzXumeIiDmWf_4A)
 
-Miro: https://miro.com/app/board/o9J_lbF7xGI=/?moveToWidget=3074457363982308077&cot=14
+[Miro](https://miro.com/app/board/o9J_lbF7xGI=/?moveToWidget=3074457363982308077&cot=14)
 
-Engineering Document: https://docs.google.com/document/d/1LJjxVGk3X9yfuTIjHIq8q6FSnxWk298Fo4CQmwLiFRQ/edit#
+[Engineering Document](https://docs.google.com/document/d/1LJjxVGk3X9yfuTIjHIq8q6FSnxWk298Fo4CQmwLiFRQ/edit#)
 
 ## Requirement
 
