@@ -7,7 +7,7 @@ JustinChen@TVU
 ## Change logs:
 
 1. 20210915 the first version
-2. 20210525 add a new API `mutation checkoutNewSubscriptionInvoice` for Partyline
+2. 20210922 add a new API `mutation updateSubscription`; modify `query permission` and add the recommended redirect URL
 
 ## Guideline 
 
