@@ -117,6 +117,45 @@ query{
 }
 ```
 
+### query subscription
+
+return the information of customer's subscription. 
+
+`paywalld` ensures that a user just has one active `subscription` for one `plan` in TVUSearch; a user just has one active `subscription` in `Partyline`.
+
+```
+query {
+    subscription (
+        customerId: "justinchen@tvunetworks.com",
+        product: "Partyline",
+        planId: "partyline-common-custom",	# In `Partyline`, this option will be optional 
+        status: 1
+    ) {
+
+    }
+}
+```
+
+ref: https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#list_subscriptions The explanation of `status`: https://apidocs.chargebee.com/docs/api/subscriptions#subscription_status
+
+### mutation changeSubscriptionStatus
+
+```
+query {
+    cancelSubscription (
+        customerId: "justinchen@tvunetworks.com",
+        product: "TVUSearch",
+        planId: "MM_Fednet_Sub_98",		
+        subscriptionId: "id"，
+        status: "cancel"					// active/non_renewing/paused/cancelled
+    ) {
+         subscriptionId 		// subscription ID
+         status					// active/non_renewing/paused/cancelled
+         ...
+	}
+}
+```
+
 ### query previewCustomSubscription
 
 calculate the price of the custom subscription. 
@@ -223,12 +262,12 @@ Internal logic:
 
 1. need to create a Chargebee customer account if no account for the group of this user exists. And pass its customer account ID to User Service;
 2. checkout OneTime Invoice(https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkoutOneTime-usecases), return a hosted page;
-3. save hostedPageID & the string of chargeItems to the database table `payment` to log 
+3. save hostedPageID & the string of chargeItems to the database table `billing_record` to log the event
 4. our embedded web uses `query customerPortalStatus` to get the payment status. The embedded web should inform App of the status. 
 5. At the same time, the backend should wait for the callback from Chargebee. We can check the payment status in its handler.
 6. Chargebee will pass the invoice status to `mutation eventNotify` via web hook.
-7. The payment status and invoiceID can be obtained from the previous three steps.  They have the same logic. The relationship between `subscriptionID` and `invoiceID` will be created there and saved in table `payment`.
-8. Based on the record saved in table `payment` , insert a new record to `subscription` table and set the status of subscription to `valid` , and table `subaddon` should be updated too. 
+7. The payment status and invoiceID can be obtained from the previous three steps.  They have the same logic. The relationship between `subscriptionID` and `invalid_invoice_id` will be created there and saved in table `billing_record`.
+8. Based on the record saved in table `billing_record` , insert a new record to `subscription` table and set the status of subscription to `valid` , and table `subaddon` should be updated too. 
 
 #### `cron` task
 
@@ -266,12 +305,12 @@ providing a hosted page for customers to finish checkout/create new subscription
 
 ```
 mutation {
-    checkoutNewSubscription (
+    updateSubscription (
         customerId: "justinchen@tvunetworks.com",
 		product: "Partyline",
-    	planId: "partyline-common-advance",
+    	planId: "partyline-common-advance",		
     	chargeItems: "same JSON as query previewCustomSubscription",	// optional. It's meaningful while `plan` is `custom`
-    	subScriptionID: "..."		//optional for now.
+    	subScriptionID: "..."		//for Partyline, it could be optional.
     ) {
       hostedPage {
           ...
