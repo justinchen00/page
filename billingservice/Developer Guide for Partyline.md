@@ -11,7 +11,7 @@
 ### essential APIs
 [query permission](https://justinchen00.github.io/page/billingservice/API%20definition.html#query-permission);
 [query previewCustomSubscription](https://justinchen00.github.io/page/billingservice/API%20definition.html#query-previewcustomsubscription);
-[mutation checkoutNewSubscription](https://justinchen00.github.io/page/billingservice/API%20definition.html#mutation-checkoutnewsubscription);
+[mutation checkoutSubscription](https://justinchen00.github.io/page/billingservice/API%20definition.html#mutation-checkoutsubscription);
 
 ### Common Rate Card
 
@@ -21,7 +21,7 @@ workflow and related APIs
    fetch the existing plans with `type`="non-custom" for given product
 2. query plan
    fetch the details of each plan for display.
-3. mutation checkoutNewSubscription
+3. mutation checkoutSubscription
    provides `a hosted page` for customers to finish checkout a new subscription for a given valid plan ID. 
    [TUTORIALS](https://www.chargebee.com/checkout-portal-docs/checkout-new-tutorial.html) or consult my team for how to use `the hosted page`
 
@@ -35,7 +35,7 @@ workflow and related APIs
     fetch the details of each plan, 
 3. query previewCustomSubscription
     return the price for customer reference
-4. mutation checkoutNewSubscription
+4. mutation checkoutSubscription
     Based on the number of charge items and plan provided by customer, generates a new subscription. Then provides `hosted page` for customers to finish checkout/create new subscriptions for a given valid plan ID. 
     [TUTORIALS](https://www.chargebee.com/checkout-portal-docs/checkout-new-tutorial.html) or consult my team for how to use `the hosted page`
 

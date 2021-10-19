@@ -8,6 +8,12 @@ JustinChen@TVU
 
 1. 20210915 the first version
 2. 20210922 add a new API `mutation updateSubscription`; modify `query permission` and add the recommended redirect URL
+3. 20211018 rename `mutation checkoutNewSubscription` to `mutation checkoutSubscription`;  
+   merge `mutation updateSubscription` into `mutation checkoutSubscription`;  
+   `mutation checkoutSubscription` supports prorating credits and charges during upgrade subscription;  
+   enrich `query permission`;  
+   add `group` in `mutation checkoutSubscription` to support creating subscription for `group`;  
+   add `mutation cancelSubscription`; 
 
 ## Guideline 
 
@@ -48,7 +54,10 @@ query{
   permission (
         customerId: "justinchen@tvunetworks.com",
         product: "Partyline",				// Partyline user just has one plan at a time. So no plan argument here.
-        chargeItems: "string in JSON",		// sample listed below 				
+        chargeItems: "string in JSON",		// sample listed below 		
+        									{}  //TVUChannel has no chargeItems. so it is empty here.
+        									
+        									OR:
                                             {
                                                 "version":1,
                                                 "partyline-participant":8,
@@ -72,12 +81,17 @@ query{
     ) {
 	    remainHours			// The quantity of chargeItems - usage 
 		permission {		// []
-			id			// partyline-participant
-			ceiling		// 8
-			allow		// true/false
+			id				// partyline-participant
+			ceiling			// 8
+			allow			// true/false
 		},
-		redirectUrl: "the URL of the default plan list, or a self-service portal"
-		redirectReason: "need to upgrade plan, or there is an unpaid invoice"
+		redirect {
+			iframeSrc			//"the URL of the default plan list, or a self-service portal"
+			iframeWidth
+			iframeHeight
+			reasonCode 			// error code
+			reasonDescription 	// readable description, such as "need to upgrade plan, or there is an unpaid invoice"
+		}
     }
 }
 ```
@@ -131,7 +145,10 @@ query {
         planId: "partyline-common-custom",	# In `Partyline`, this option will be optional 
         status: 1
     ) {
-
+         subscriptionId 		// subscription ID
+         status		// active / future/in_trial/non_renewing/paused/cancelled
+    	 deleted	// true / false,
+         ...
     }
 }
 ```
@@ -237,15 +254,16 @@ If the payment succeeds, it is marked as `paid`. If the payment fails, the invoi
 
 ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page)[https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status](https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status)
 
-### mutation checkoutNewSubscription
+### mutation checkoutSubscription
 
 > used by embedded web
 
-providing a hosted page for customers to finish checkout/create new subscriptions for given valid plan ID.  Return `success` when the customer has an active subscription of the plan already.
+providing a hosted page for customers to finish checkout/create/update subscriptions for given valid plan ID.  Return `success` when the customer has an active subscription of the plan already.
 
 ```
 mutation {
-    checkoutNewSubscription (
+    checkoutSubscription (
+    	groupId: "In new UserService, this `group` will be a new concept and is not the same as `root group` or `sub group`"
         customerId: "justinchen@tvunetworks.com",
 		product: "Partyline",
     	planId: "partyline-common-advance",
@@ -260,7 +278,7 @@ mutation {
 
 Internal logic:
 
-1. need to create a Chargebee customer account if no account for the group of this user exists. And pass its customer account ID to User Service;
+1. need to create a Chargebee customer account if no account of this user's group exists. And pass its customer account ID to User Service;
 2. checkout OneTime Invoice(https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkoutOneTime-usecases), return a hosted page;
 3. save hostedPageID & the string of chargeItems to the database table `billing_record` to log the event
 4. our embedded web uses `query customerPortalStatus` to get the payment status. The embedded web should inform App of the status. 
@@ -268,10 +286,33 @@ Internal logic:
 6. Chargebee will pass the invoice status to `mutation eventNotify` via web hook.
 7. The payment status and invoiceID can be obtained from the previous three steps.  They have the same logic. The relationship between `subscriptionID` and `invalid_invoice_id` will be created there and saved in table `billing_record`.
 8. Based on the record saved in table `billing_record` , insert a new record to `subscription` table and set the status of subscription to `valid` , and table `subaddon` should be updated too. 
+9.  Since this introduces a change in the price of the subscription, **prorated credits and charges** can be raised to ensure proper billing. The accountable duration is a **day**. 
+10. no refund and downgrading yet.
 
 #### `cron` task
 
-Two cron task is created to scan the valid subscription and abnormal invoices each day.
+cron tasks are created to scan the valid subscription and abnormal invoices each day and generate the financial statement.
+
+### mutation cancelSubscription
+
+Normally, one `plan` just has one `subscription` for one user. Return the same structure as `query subscription`'s.
+
+```
+query {
+    cancelSubscription (
+        customerId: "justinchen@tvunetworks.com",
+        product: "TVUSearch",
+        planId: "MM_Fednet_Sub_98"
+    ) {
+         subscriptionId 		// subscription ID
+         status		// active / future/in_trial/non_renewing/paused/cancelled
+    	 deleted	// true / false,
+         ...
+	}
+}
+```
+
+ref:  [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#cancel_a_subscription](
 
 ### query customerPortal
 
@@ -296,33 +337,6 @@ query{
 > used by CB's webhook
 
 use it to get the status of the invoice. The format is defined by Chargebee.
-
-### mutation updateSubscription
-
-> used by embedded web
-
-providing a hosted page for customers to finish checkout/create new subscriptions for given valid plan ID.  Return `success` when the customer has an active subscription of the plan already.
-
-```
-mutation {
-    updateSubscription (
-        customerId: "justinchen@tvunetworks.com",
-		product: "Partyline",
-    	planId: "partyline-common-advance",		
-    	chargeItems: "same JSON as query previewCustomSubscription",	// optional. It's meaningful while `plan` is `custom`
-    	subScriptionID: "..."		//for Partyline, it could be optional.
-    ) {
-      hostedPage {
-          ...
-	  }
-    }
-}
-```
-
-Internal logic:
-
-1. If no `subScriptionID`, use the only existing one.
-2. no credit will be prorated for now!!!  Directly charge the customer the new price of new plan.
 
 ## HouseKeeper API
 
