@@ -7,13 +7,18 @@ JustinChen@TVU
 ## Change logs:
 
 1. 20210915 the first version
-2. 20210922 add a new API `mutation updateSubscription`; modify `query permission` and add the recommended redirect URL
+2. 20210922 add a new API `mutation updateSubscription`;  
+   modify `query permission` and add the recommended redirect URL
 3. 20211018 rename `mutation checkoutNewSubscription` to `mutation checkoutSubscription`;  
    merge `mutation updateSubscription` into `mutation checkoutSubscription`;  
    `mutation checkoutSubscription` supports prorating credits and charges during upgrade subscription;  
    enrich `query permission`;  
    add `group` in `mutation checkoutSubscription` to support creating subscription for `group`;  
    add `mutation cancelSubscription`; 
+4. 20211019 for the requirement: no Chargebee's checkout portal in our workflow
+   add `query customerPaymentPortal`;  
+   delete `query customerPortalStatus`;  
+   update mutation checkoutSubscription
 
 ## Guideline 
 
@@ -55,7 +60,7 @@ query{
         customerId: "justinchen@tvunetworks.com",
         product: "Partyline",				// Partyline user just has one plan at a time. So no plan argument here.
         chargeItems: "string in JSON",		// sample listed below 		
-        									{}  //TVUChannel has no chargeItems. so it is empty here.
+        									{}  TVUChannel has no chargeItems. so it is empty here.
         									
         									OR:
                                             {
@@ -79,12 +84,15 @@ query{
                                             	]
                                             }
     ) {
+    	encryptedStr
+    	subscriptionId		// related subscription     			
 	    remainHours			// The quantity of chargeItems - usage 
 		permission {		// []
 			id				// partyline-participant
 			ceiling			// 8
 			allow			// true/false
 		},
+		
 		redirect {
 			iframeSrc			//"the URL of the default plan list, or a self-service portal"
 			iframeWidth
@@ -113,6 +121,72 @@ query{
 
 The backend DB of Usage Service: https://usageservice.tvunetworks.com/#/infoView
 
+### query customer
+
+> used by embedded web
+
+Retrieve a customer's information of payment method and those exceptional invoices. All exceptional invoices and its content can be assembled by this API.
+
+```
+query{
+  customer(customerId:"justinchen@tvunetworks.com",
+           product: "TVUSearch"
+           ) {
+    cardStatus              # valid / expiring / expired / no card
+    unbilledCharges         # Total unbilled charges for this customer. in cents, min=0
+    exceptionalInvoices     # TODO: [], status == payment_due / not_paid
+    {
+        id
+        customer_id
+        status              # https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status
+        total
+        due_date
+        ...
+    }    
+  }
+}
+```
+
+`card_status`  == `valid` means the customer filed payment way.
+
+ref: [https://apidocs.chargebee.com/docs/api/customers#retrieve_a_customer](https://apidocs.chargebee.com/docs/api/customers#retrieve_a_customer)
+
+### query customerPaymentPortal
+
+The end-user can use the self-service portal to manage their payment method. 
+
+```
+query{
+  customerPortal (
+        customerId: "justinchen@tvunetworks.com",
+        product: "TVUSearch",
+        redirectUrl: "https://search.tvunetworks.com"	# optional. URL to redirect when the user logs out from the portal.
+    ) {
+        id          # "portal_AzZlxDSWcJOT1FvC",
+        token       # aRNcIRmnenKuV67D07JlT8tC07caVpPw",
+        access_url  # https://tvunetworks-test.chargebee.com/pages/v3/6gAvxPV9cMFNcZVk8gehmThfW1mvJflX/
+    }
+}
+```
+
+### query customerPortal
+
+The end-user can use the self-service portal to maintain their billing information / invoice / subscription. 
+
+```
+query{
+  customerPortal (
+        customerId: "justinchen@tvunetworks.com",
+        product: "TVUSearch",
+        redirectUrl: "https://search.tvunetworks.com"	# optional. URL to redirect when the user logs out from the portal.
+    ) {
+        id          # "portal_AzZlxDSWcJOT1FvC",
+        token       # aRNcIRmnenKuV67D07JlT8tC07caVpPw",
+        access_url  # https://tvunetworks-test.chargebee.com/portal/v2/authenticate?token=KzU6TF4tcd8laBs1RCzz2z8FTeamcubBu6
+    }
+}
+```
+
 ### query plans
 
 > used by embedded web
@@ -132,6 +206,8 @@ query{
 ```
 
 ### query subscription
+
+> used by embedded web
 
 return the information of customer's subscription. 
 
@@ -222,38 +298,6 @@ query {
 {"formula": "$partyline-hour*0.25*(2*$partyline-participant*(1+225/100)+$partyline-output*(1+225/100))"}
 ```
 
-### query customerPortalStatus
-
-> used by embedded web
-
-client can use it to check the final status of a checkout carried out by a hosted page.
-
-```
-query{
-  customerPortalStatus (
-        hostedPageID: "b9Z5Sce6AxFBNBMLu4qcuJHFthSF4VI0I"
-    ) {
-        type        # "checkout_one_time"
-        url
-        created_at  # 1622021085
-        invoice {   # type invoice
-            id
-            customer_id
-            status  # "payment_due", check below
-            total
-            amount_paid
-            amount_due
-            amount_to_collect
-        }
-    }
-}
-```
-
-`invoice.status`: 
-If the payment succeeds, it is marked as `paid`. If the payment fails, the invoice is marked as `payment_due` and retry settings are taken into account. If no retry attempts are configured, the invoice is marked as `not_paid`. If the amount due is zero or negative, the invoice is immediately marked as paid and the balance if any is carried forward to the next term of the invoice.
-
-ref: [https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page](https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#retrieve_a_hosted_page)[https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status](https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#invoice_status)
-
 ### mutation checkoutSubscription
 
 > used by embedded web
@@ -269,9 +313,13 @@ mutation {
     	planId: "partyline-common-advance",
     	chargeItems: "same JSON as query previewCustomSubscription",	# optional. It's meaningful while `plan` is `custom`
     ) {
-      hostedPage {
-          ...
-	  }
+        invoice{
+        	id: "xxxx",
+        	status: "NOT_PAID",			//PAID/POSTED/PAYMENT_DUE/NOT_PAID/VOIDED/PENDING
+        	statusDescription: "the payment is not made and all attempts to collect is failed",
+        	amountPaid: 0
+        	total: 84
+        }
     }
 }
 ```
@@ -279,21 +327,37 @@ mutation {
 Internal logic:
 
 1. need to create a Chargebee customer account if no account of this user's group exists. And pass its customer account ID to User Service;
-2. checkout OneTime Invoice(https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkoutOneTime-usecases), return a hosted page;
-3. save hostedPageID & the string of chargeItems to the database table `billing_record` to log the event
-4. our embedded web uses `query customerPortalStatus` to get the payment status. The embedded web should inform App of the status. 
-5. At the same time, the backend should wait for the callback from Chargebee. We can check the payment status in its handler.
-6. Chargebee will pass the invoice status to `mutation eventNotify` via web hook.
-7. The payment status and invoiceID can be obtained from the previous three steps.  They have the same logic. The relationship between `subscriptionID` and `invalid_invoice_id` will be created there and saved in table `billing_record`.
-8. Based on the record saved in table `billing_record` , insert a new record to `subscription` table and set the status of subscription to `valid` , and table `subaddon` should be updated too. 
-9.  Since this introduces a change in the price of the subscription, **prorated credits and charges** can be raised to ensure proper billing. The accountable duration is a **day**. 
-10. no refund and downgrading yet.
+2. checkout one time invoice(https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1#create_an_invoice);
+3. save the string of chargeItems to the database table `billing_record` to log the event
+4. Chargebee will pass the invoice status to `mutation eventNotify` via web hook. The relationship between `subscriptionID` and `invalid_invoice_id` will be created there and saved in table `billing_record`.
+5. Based on the record saved in table `billing_record` , insert a new record to `subscription` table and set the status of subscription to `valid` , and table `subaddon` should be updated too. 
+6. Since this introduces a change in the price of the subscription, **prorated credits and charges** can be raised to ensure proper billing. The accountable duration is a **day**. 
+7. no refund for downgrade yet.
+
+ref:
+
+Invoice status: https://apidocs.chargebee.com/docs/api/invoices?prod_cat_ver=1&lang=java#invoice_status
+
+~~Internal logic:~~
+
+1. ~~need to create a Chargebee customer account if no account of this user's group exists. And pass its customer account ID to User Service;~~
+2. ~~checkout OneTime Invoice(https://apidocs.chargebee.com/docs/api/hosted_pages?prod_cat_ver=1#checkoutOneTime-usecases), return a hosted page;~~
+3. ~~save hostedPageID & the string of chargeItems to the database table `billing_record` to log the event~~
+4. ~~our embedded web uses `query customerPortalStatus` to get the payment status. The embedded web should inform App of the status.~~ 
+5. ~~At the same time, the backend should wait for the callback from Chargebee. We can check the payment status in its handler.~~
+6. ~~Chargebee will pass the invoice status to `mutation eventNotify` via web hook.~~
+7. ~~The payment status and invoiceID can be obtained from the previous three steps.  They have the same logic. The relationship between `subscriptionID` and `invalid_invoice_id` will be created there and saved in table `billing_record`.~~
+8. ~~Based on the record saved in table `billing_record` , insert a new record to `subscription` table and set the status of subscription to `valid` , and table `subaddon` should be updated too.~~ 
+9.  ~~Since this introduces a change in the price of the subscription, **prorated credits and charges** can be raised to ensure proper billing. The accountable duration is a **day**.~~ 
+10. ~~no refund and downgrading yet.~~
 
 #### `cron` task
 
 cron tasks are created to scan the valid subscription and abnormal invoices each day and generate the financial statement.
 
 ### mutation cancelSubscription
+
+> used by embedded web
 
 Normally, one `plan` just has one `subscription` for one user. Return the same structure as `query subscription`'s.
 
@@ -314,24 +378,6 @@ query {
 
 ref:  [https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#cancel_a_subscription](
 
-### query customerPortal
-
-The end-user can use the self-service portal to maintain their billing information / invoice / subscription. You
-
-```
-query{
-  customerPortal (
-        customerId: "justinchen@tvunetworks.com",
-        product: "TVUSearch",
-        redirectUrl: "https://search.tvunetworks.com"	# optional. URL to redirect when the user logs out from the portal.
-    ) {
-        id          # "portal_AzZlxDSWcJOT1FvC",
-        token       # aRNcIRmnenKuV67D07JlT8tC07caVpPw",
-        access_url  # https://tvunetworks-test.chargebee.com/portal/v2/authenticate?token=aRNcIRmnenKuV67D07JlT8tC07caVpPw"
-    }
-}
-```
-
 ### mutation eventNotify
 
 > used by CB's webhook
@@ -340,6 +386,7 @@ use it to get the status of the invoice. The format is defined by Chargebee.
 
 ## HouseKeeper API
 
-1. an internal Timer. It is created when an event is created in APP; It is destroyed when an event is stopped in APP. And notify App when credit runs out or is about to run out.
+1. an internal Timer. It is created when an event is created in APP; It is destroyed when an event is stopped in APP. And notify App when credit runs out or is about to run out via `callback_URL` listed below.
 2. API: `startEvent` { session, user， `a new encrypted string got from query permission` ,   `callback_URL`}
+   `callback_URL`:  hosted by APP.
 3. API: `stopEvent` { session, user,  `a new encrypted string got from query permission` }
