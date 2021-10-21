@@ -18,7 +18,8 @@ JustinChen@TVU
 4. 20211019 for the requirement: no Chargebee's checkout portal in our workflow
    add `query customerPaymentPortal`;  
    delete `query customerPortalStatus`;  
-   update mutation checkoutSubscription
+   update `mutation checkoutSubscription`
+5. 20211020 change the return value of `query permission`
 
 ## Guideline 
 
@@ -85,6 +86,8 @@ query{
                                             }
     ) {
     	encryptedStr
+    	code 				// error code or 0x0(represents allow)
+        description 		// readable description, such as "need to upgrade plan, or there is an unpaid invoice"
     	subscriptionId		// related subscription     			
 	    remainHours			// The quantity of chargeItems - usage 
 		permission {		// []
@@ -97,8 +100,6 @@ query{
 			iframeSrc			//"the URL of the default plan list, or a self-service portal"
 			iframeWidth
 			iframeHeight
-			reasonCode 			// error code
-			reasonDescription 	// readable description, such as "need to upgrade plan, or there is an unpaid invoice"
 		}
     }
 }
