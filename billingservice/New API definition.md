@@ -80,7 +80,18 @@ query{
                                                 },
                                                 {
                                                 "id": "partyline-output",
-                                                "quantity": 4,
+                                                "quantity": 4,			//absolute quantity of this addon
+                                                }
+                                            	]
+                                            }
+                                            
+                                            OR: 
+                                             {
+                                            	"version":2,
+                                            	"chargeItems": [
+                                                {
+                                                "id": "tvuchannel-channel",
+                                                "increase": 1,			//want to increase the number of this addon
                                                 }
                                             	]
                                             }
@@ -93,17 +104,24 @@ query{
 		permission {		// []
 			id				// partyline-participant
 			ceiling			// 8
-			allow			// true/false
+			quantity		// current subscribed quantity of addon, e.g. 6
+			allow			// true/false, e.g. true (6<8)
 		},
 		
 		redirect {
-			iframeSrc			//"the URL of the default plan list, or a self-service portal"
+			iframeSrc		// plan list / subscription maintaining page / addon(-/+) page / self-service portal
 			iframeWidth
 			iframeHeight
 		}
     }
 }
 ```
+
+`iframeSrc`: 
+is `plan list` when the user has no active subscription;
+is `subscription maintaining page` when multiple addons are scarce;
+is `addon(-/+) page` when just one addon is scarce;
+is `CB payment maintaining page` when user doesn't file payment method. 
 
 Usage Service API: 
 https://showdoc.tvunetworks.com/web/#/111?page_id=3313
@@ -232,24 +250,6 @@ query {
 
 ref: https://apidocs.chargebee.com/docs/api/subscriptions?prod_cat_ver=1#list_subscriptions The explanation of `status`: https://apidocs.chargebee.com/docs/api/subscriptions#subscription_status
 
-### mutation changeSubscriptionStatus
-
-```
-query {
-    cancelSubscription (
-        customerId: "justinchen@tvunetworks.com",
-        product: "TVUSearch",
-        planId: "MM_Fednet_Sub_98",		
-        subscriptionId: "id"，
-        status: "cancel"					// active/non_renewing/paused/cancelled
-    ) {
-         subscriptionId 		// subscription ID
-         status					// active/non_renewing/paused/cancelled
-         ...
-	}
-}
-```
-
 ### query previewCustomSubscription
 
 calculate the price of the custom subscription. 
@@ -321,6 +321,11 @@ mutation {
         	amountPaid: 0
         	total: 84
         }
+		redirect {
+			iframeSrc		// self-service portal
+			iframeWidth
+			iframeHeight
+		}
     }
 }
 ```
