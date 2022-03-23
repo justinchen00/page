@@ -1,4 +1,4 @@
-# TVUNetworks MMA API
+# TVUNetworks MediaMind API
 
 ![source](https://justinchen00.github.io/page/)
 

@@ -299,6 +299,10 @@ query {
 {"formula": "$partyline-hour*0.25*(2*$partyline-participant*(1+225/100)+$partyline-output*(1+225/100))"}
 ```
 
+### query checkChannel
+
+
+
 ### mutation checkoutSubscription
 
 > used by embedded web
